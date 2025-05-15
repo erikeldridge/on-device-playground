@@ -57,7 +57,6 @@ class ChromeModel {
 const model = new ChromeModel(window.LanguageModel);
 
 function App() {
-  const [highlightIndex, setHighlightIndex] = useState(-1);
   const [output, setOutput] = useState([]);
   const [isAvailable, setIsAvailable] = useState(false);
   useEffect(() => {
@@ -73,19 +72,9 @@ function App() {
     promptEl.value = "";
     promptEl.focus();
   }
-  function onKeyDown(e) {
-    if (e.key !== "ArrowUp") {
-      return;
-    }
-    setHighlightIndex((highlightIndex + 1) % output.length);
-  }
   const outputItems = output.map((content, i) => {
-    const classNames = [content.role]
-    if (highlightIndex === i) {
-      classNames.push('highlighted')
-    }
     return (
-      <li key={i} className={classNames.join(' ')}>
+      <li key={i} className={content.role}>
         <ReactMarkdown children={content.content} />
       </li>
     );
@@ -94,7 +83,7 @@ function App() {
     <div className="container">
       <ol id="output">{outputItems}</ol>
       <form onSubmit={onSubmit}>
-        <textarea name="prompt" onKeyDown={onKeyDown}></textarea>
+        <textarea name="prompt"></textarea>
         <button type="submit" disabled={!isAvailable}>
           Send
         </button>

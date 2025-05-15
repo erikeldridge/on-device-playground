@@ -10,9 +10,6 @@ html, body, #root {
   flex: auto;
   overflow: scroll;
 }
-.highlighted {
-  background-color: aliceblue;
-}
 form {
   flex: initial;
   margin-top: 8px;
