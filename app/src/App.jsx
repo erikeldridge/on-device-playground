@@ -3,8 +3,9 @@ import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
 class ChromeModel {
-  constructor(provider, history = []) {
+  constructor(provider, tools = {}, history = []) {
     this._provider = provider;
+    this._tools = tools;
     this.history = history;
   }
   async isAvailable() {
@@ -30,9 +31,34 @@ class ChromeModel {
     const normalized = ChromeModel.normalize(prompt);
     console.log(`Normalized prompt:`, normalized);
     this.history.push(normalized);
-    const response = await session.prompt(normalized);
-    this.history.push([{ role: "assistant", content: response }]);
-    return response;
+    const schema = {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        text: {
+          type: "string",
+        },
+        tool: {
+          type: "string",
+        },
+      },
+    };
+    const json = await session.prompt(normalized, {
+      responseConstraint: schema,
+    });
+    console.log("Raw response", json);
+    const parsed = JSON.parse(json);
+    console.log("Parsed response", parsed);
+    if (parsed.text) {
+      this.history.push([{ role: "function", content: parsed.text }]);
+    }
+    if (parsed.tool) {
+      const result = this._tools[parsed.tool].call();
+      this.history.push([
+        { role: "function", content: `The result is ${result}` },
+      ]);
+    }
+    return parsed;
   }
   /**
    * Normalizes to the most complex type supported by
@@ -48,13 +74,30 @@ class ChromeModel {
   async session() {
     if (!this._session) {
       console.log("Creating session");
-      this._session = await this._provider.create();
+      this._session = await this._provider.create({
+        initialPrompts: [
+          {
+            role: "system",
+            content: `
+            You are a helpful assistant. You use the given schema to respond with either text in the "text" field, or a tool to use in the "tool" field.
+            Available tools:
+            - timestamp: A tool for getting the current Unix timestamp. Use this tool by responding with "timestamp" in the "tool" field.
+            `,
+          },
+        ],
+      });
     }
     return this._session;
   }
 }
 
-const model = new ChromeModel(window.LanguageModel);
+const tools = {
+  timestamp: {
+    call: () => Date.now(),
+  },
+};
+
+const model = new ChromeModel(window.LanguageModel, tools);
 
 function App() {
   const [output, setOutput] = useState([]);
