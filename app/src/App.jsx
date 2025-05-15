@@ -57,6 +57,7 @@ class ChromeModel {
 const model = new ChromeModel(window.LanguageModel);
 
 function App() {
+  const [highlightIndex, setHighlightIndex] = useState(-1);
   const [output, setOutput] = useState([]);
   const [isAvailable, setIsAvailable] = useState(false);
   useEffect(() => {
@@ -66,25 +67,34 @@ function App() {
     e.preventDefault();
     const promptEl = e.target.prompt;
     await model.prompt(promptEl.value);
-    // Destructures history so React can detect the change.
-    setOutput([...model.history]);
+    // Flattens nested arrays for simpler view rendering.
+    const flatHistory = model.history.flatMap((item) => item);
+    setOutput(flatHistory);
     promptEl.value = "";
     promptEl.focus();
   }
-  const outputItems = output.flatMap((item, i) => {
-    return item.map((content, j) => {
-      return (
-        <li key={i + "-" + j} className={content.role}>
-          <ReactMarkdown children={content.content} />
-        </li>
-      );
-    });
+  function onKeyDown(e) {
+    if (e.key !== "ArrowUp") {
+      return;
+    }
+    setHighlightIndex((highlightIndex + 1) % output.length);
+  }
+  const outputItems = output.map((content, i) => {
+    const classNames = [content.role]
+    if (highlightIndex === i) {
+      classNames.push('highlighted')
+    }
+    return (
+      <li key={i} className={classNames.join(' ')}>
+        <ReactMarkdown children={content.content} />
+      </li>
+    );
   });
   return (
     <div className="container">
       <ol id="output">{outputItems}</ol>
       <form onSubmit={onSubmit}>
-        <textarea name="prompt"></textarea>
+        <textarea name="prompt" onKeyDown={onKeyDown}></textarea>
         <button type="submit" disabled={!isAvailable}>
           Send
         </button>
