@@ -52,12 +52,6 @@ export class ChromeModel {
     if (parsed.text) {
       this.history.push([{ role: "function", content: parsed.text }]);
     }
-    if (parsed.tool) {
-      const result = this._tools[parsed.tool].call();
-      this.history.push([
-        { role: "function", content: `The result is ${result}` },
-      ]);
-    }
     return parsed;
   }
   /**
@@ -80,6 +74,7 @@ export class ChromeModel {
             role: "system",
             content: `
             You are a helpful assistant. You use the given schema to respond with either text in the "text" field, or a tool to use in the "tool" field.
+            If a tool's output has been given, do not recommend the tool again.
             Available tools:
             - timestamp: A tool for getting the current Unix timestamp. Use this tool by responding with "timestamp" in the "tool" field.
             `,
@@ -92,14 +87,28 @@ export class ChromeModel {
 }
 
 export class Reactor {
-  constructor(busEl, model) {
+  constructor(busEl, model, tools) {
     busEl.addEventListener("user", this.onUserEvent.bind(this));
     this._bus = busEl;
     this._model = model;
+    this._tools = tools;
   }
   async onUserEvent(e) {
-    await this._model.prompt(e.detail);
-    this._bus.dispatchEvent(new CustomEvent('assistant'))
+    let promptResult = await this._model.prompt(e.detail);
+    if (promptResult.tool) {
+      const toolResult = this._tools[promptResult.tool].call();
+      promptResult = await this._model.prompt([
+        {
+          role: "user",
+          content: `The output from the "${promptResult.tool}" tool is ${toolResult}`,
+        },
+        { role: "user", content: e.detail },
+      ]);
+      this._bus.dispatchEvent(new CustomEvent("assistant"));
+    }
+    if (promptResult.text) {
+      this._bus.dispatchEvent(new CustomEvent("assistant"));
+    }
   }
 }
 
@@ -110,11 +119,11 @@ export function App({ busEl, model }) {
   useEffect(() => {
     model.isAvailable().then(setIsAvailable);
     busEl.addEventListener("assistant", (e) => {
-      e.stopImmediatePropagation()
+      e.stopImmediatePropagation();
       // Flattens nested content arrays for simpler view rendering.
       const flatHistory = model.history.flatMap((item) => item);
       setOutput(flatHistory);
-      setPrompt('')
+      setPrompt("");
     });
   }, [model, busEl]);
   async function onSubmit(e) {

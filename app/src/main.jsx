@@ -12,7 +12,7 @@ const tools = {
 
 const model = new ChromeModel(window.LanguageModel, tools);
 
-new Reactor(rootEl, model)
+new Reactor(rootEl, model, tools)
 
 createRoot(rootEl).render(
   <StrictMode>
