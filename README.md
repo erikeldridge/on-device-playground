@@ -1,4 +1,6 @@
-# On-Device Studio
+# On-Device Playground
+
+A web app for playing with on-device AI features.
 
 ## Set Up
 
@@ -11,6 +13,8 @@
 2. `npm start`
 
 ## Edit Favicon
+
+I like trying different favicons too. Here are the steps to edit the SVG in VSCode:
 
 1. Right click on public/favicon.svg
 2. Select "Open with ..."

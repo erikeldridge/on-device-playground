@@ -47,8 +47,8 @@ export class ChromeModel {
             arguments: {
               type: "array",
               items: {
-                type: 'number'
-              }
+                type: "number",
+              },
             },
           },
         },
@@ -144,7 +144,9 @@ export class Reactor {
 }
 
 export function App({ busEl, model }) {
-  const [prompt, setPrompt] = useState("");
+  const [prompt, setPrompt] = useState(
+    "generate the current timestamp and then convert that timestamp to a date string"
+  );
   const [output, setOutput] = useState([]);
   const [isAvailable, setIsAvailable] = useState(false);
   useEffect(() => {
