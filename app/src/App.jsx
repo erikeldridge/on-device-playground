@@ -39,7 +39,18 @@ export class ChromeModel {
           type: "string",
         },
         tool: {
-          type: "string",
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+            },
+            arguments: {
+              type: "array",
+              items: {
+                type: 'number'
+              }
+            },
+          },
         },
       },
     };
@@ -78,9 +89,17 @@ export class ChromeModel {
             You do not use the same tool twice in a row.
             Available tools:
             - timestamp: A tool for getting the current Unix timestamp.
+              Arguments: none.
+              Returns: a number.
               Use this tool by responding with "timestamp" in the "tool" field.
-              Example 1: if user asks "what's the current timestamp?", respond with {"tool":"timestamp"}.
+              Example 1: if user asks "what's the current timestamp?", respond with {"tool":{"name":"timestamp"}}.
               Example 2: if user states "the output of the 'timestamp' tool is 123", and then asks "what's the current timestamp?", respond with '{"text":"the current timestamp is 123"}'.
+            - timestamp_to_date: A tool for converting a Unix timestamp to a string representing this date.
+              Arguments: a numeric timestamp.
+              Returns: a string.
+              Use this tool by responding with "timestamp_to_date" in the "tool" field.
+              Example 1: if user states "the output of the 'timestamp' tool is 123", and then asks "what's the current date?", respond with '{"tool":{"name":"timestamp_to_date", "arguments":[123]}}'.
+              Example 2: if user states "the output of the 'timestamp_to_date' tool is Tue Aug 19 1975 23:15:30 GMT+0200 (CEST)", and then asks "what's the current date?", respond with '{"text":"the current date is Tue Aug 19 1975 23:15:30 GMT+0200 (CEST)"}'.
             `,
           },
         ],
@@ -100,16 +119,21 @@ export class Reactor {
   async onUserEvent(e) {
     let promptResult = await this._model.prompt(e.detail);
     if (promptResult.tool) {
-      const toolResult = this._tools[promptResult.tool].call();
+      const args = promptResult.tool.arguments || [];
+      const toolResult = this._tools[promptResult.tool.name].call(...args);
+      let detail;
+      if (typeof e.detail === "string") {
+        detail = [{ role: "user", content: e.detail }];
+      } else {
+        detail = e.detail;
+      }
+      detail.push({
+        role: "user",
+        content: `The output from the "${promptResult.tool.name}" tool is ${toolResult}`,
+      });
       this._bus.dispatchEvent(
         new CustomEvent("user", {
-          detail: [
-            {
-              role: "user",
-              content: `The output from the "${promptResult.tool}" tool is ${toolResult}`,
-            },
-            { role: "user", content: e.detail },
-          ],
+          detail,
         })
       );
     }

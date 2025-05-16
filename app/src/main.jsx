@@ -6,8 +6,17 @@ const rootEl = document.getElementById('root')
 
 const tools = {
   timestamp: {
-    call: () => Date.now(),
+    call: () => {
+      console.log('timestamp')
+      return Date.now()
+    },
   },
+  timestamp_to_date: {
+    call: (ts) => {
+      console.log('timestamp_to_date', ts)
+      return new Date(ts).toString()
+    }
+  }
 };
 
 const model = new ChromeModel(window.LanguageModel, tools);
