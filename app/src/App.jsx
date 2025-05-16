@@ -73,10 +73,14 @@ export class ChromeModel {
           {
             role: "system",
             content: `
-            You are a helpful assistant. You use the given schema to respond with either text in the "text" field, or a tool to use in the "tool" field.
-            If a tool's output has been given, do not recommend the tool again.
+            You are a helpful assistant.
+            You use the given schema to respond with either text in the "text" field, or a tool to use in the "tool" field.
+            You do not use the same tool twice in a row.
             Available tools:
-            - timestamp: A tool for getting the current Unix timestamp. Use this tool by responding with "timestamp" in the "tool" field.
+            - timestamp: A tool for getting the current Unix timestamp.
+              Use this tool by responding with "timestamp" in the "tool" field.
+              Example 1: if user asks "what's the current timestamp?", respond with {"tool":"timestamp"}.
+              Example 2: if user states "the output of the 'timestamp' tool is 123", and then asks "what's the current timestamp?", respond with '{"text":"the current timestamp is 123"}'.
             `,
           },
         ],
@@ -97,14 +101,17 @@ export class Reactor {
     let promptResult = await this._model.prompt(e.detail);
     if (promptResult.tool) {
       const toolResult = this._tools[promptResult.tool].call();
-      promptResult = await this._model.prompt([
-        {
-          role: "user",
-          content: `The output from the "${promptResult.tool}" tool is ${toolResult}`,
-        },
-        { role: "user", content: e.detail },
-      ]);
-      this._bus.dispatchEvent(new CustomEvent("assistant"));
+      this._bus.dispatchEvent(
+        new CustomEvent("user", {
+          detail: [
+            {
+              role: "user",
+              content: `The output from the "${promptResult.tool}" tool is ${toolResult}`,
+            },
+            { role: "user", content: e.detail },
+          ],
+        })
+      );
     }
     if (promptResult.text) {
       this._bus.dispatchEvent(new CustomEvent("assistant"));
