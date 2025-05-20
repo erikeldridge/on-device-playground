@@ -1,6 +1,8 @@
 import { StrictMode } from 'react'
 import { createRoot } from 'react-dom/client'
-import {App, ChromeModel, Reactor} from './App.jsx'
+import { ChromeModel } from './ChromeModel.js'
+import { Agent } from './Agent.js'
+import {App} from './App.jsx'
 
 const rootEl = document.getElementById('root')
 
@@ -21,7 +23,7 @@ const tools = {
 
 const model = new ChromeModel(window.LanguageModel, tools);
 
-new Reactor(rootEl, model, tools)
+new Agent(rootEl, model, tools)
 
 createRoot(rootEl).render(
   <StrictMode>
