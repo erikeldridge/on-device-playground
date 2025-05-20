@@ -29,7 +29,7 @@ const tools = {
   },
 };
 
-const model = new OnDeviceModel(window.LanguageModel, {
+const createOpts = {
   initialPrompts: [
     {
       role: "system",
@@ -44,9 +44,13 @@ const model = new OnDeviceModel(window.LanguageModel, {
         `,
     },
   ],
-});
+};
 
-const agent = new Agent(model, tools);
+const model = new OnDeviceModel(window.LanguageModel, createOpts);
+
+const qaModel = new OnDeviceModel(window.LanguageModel, createOpts);
+
+const agent = new Agent(model, qaModel, tools);
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

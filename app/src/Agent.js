@@ -1,6 +1,7 @@
 export class Agent {
-  constructor(model, tools) {
+  constructor(model, qaModel, tools) {
     this._model = model;
+    this._qaModel = qaModel;
     this._tools = tools;
   }
   async isAvailable() {
@@ -30,7 +31,7 @@ export class Agent {
         },
       },
     };
-    let promptResult = await this._model.prompt(prompt, {
+    let promptResult = await this._metaPrompt(prompt, {
       responseConstraint,
     });
     let detail = [prompt];
@@ -40,10 +41,29 @@ export class Agent {
       detail.push(
         `The output from the "${promptResult.tool.name}" tool is ${toolResult}`
       );
-      promptResult = await this._model.prompt(detail, {
+      promptResult = await this._metaPrompt(detail, {
         responseConstraint,
       });
     }
     return promptResult.text;
+  }
+  async _metaPrompt(prompt, options) {
+    let response, qaResponse;
+    for (let i = 0; i < 3; i++) {
+      [response, qaResponse] = await Promise.all([
+        this._model.prompt(prompt, options),
+        this._qaModel.prompt(prompt, options),
+      ]);
+      if (
+        (response.tool &&
+          qaResponse.tool &&
+          response.tool.name === qaResponse.tool.name) ||
+        (response.text && qaResponse.text)
+      ) {
+        console.log("consistent");
+        break;
+      }
+    }
+    return response;
   }
 }
