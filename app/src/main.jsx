@@ -8,23 +8,34 @@ const tools = {
   timestamp: {
     call: () => Date.now(),
     description: `
-      A tool for getting the current Unix timestamp.
-      Arguments: none.
-      Returns: a number.
-      Use this tool by responding with "timestamp" in the "tool" field.
-      Example 1: if user asks "what's the current timestamp?", respond with {"tool":{"name":"timestamp"}}.
-      Example 2: if user states "the output of the 'timestamp' tool is 123", and then asks "what's the current timestamp?", respond with '{"text":"the current timestamp is 123"}'.
+    A tool for getting the current Unix timestamp.
+    Arguments: none.
+    Returns: a number.
+    Use this tool by responding with "timestamp" in the "tool" field.
+    Example 1: if user asks "what's the current timestamp?", respond with {"tool":{"name":"timestamp"}}.
+    Example 2: if user states "the output of the 'timestamp' tool is 123", and then asks "what's the current timestamp?", respond with '{"text":"the current timestamp is 123"}'.
     `,
   },
   timestamp_to_date: {
     call: (timestamp) => new Date(timestamp).toString(),
     description: `
-      A tool for converting a Unix timestamp to a string representing this date.
-      Arguments: a numeric timestamp.
-      Returns: a string.
-      Use this tool by responding with "timestamp_to_date" in the "tool" field.
-      Example 1: if user states "the output of the 'timestamp' tool is 123", and then asks "what's the current date?", respond with '{"tool":{"name":"timestamp_to_date", "arguments":[123]}}'.
-      Example 2: if user states "the output of the 'timestamp_to_date' tool is Tue Aug 19 1975 23:15:30 GMT+0200 (CEST)", and then asks "what's the current date?", respond with '{"text":"the current date is Tue Aug 19 1975 23:15:30 GMT+0200 (CEST)"}'.
+    A tool for converting a Unix timestamp to a string representing this date.
+    Arguments: a numeric timestamp.
+    Returns: a string.
+    Use this tool by responding with "timestamp_to_date" in the "tool" field.
+    Example 1: if user states "the output of the 'timestamp' tool is 123", and then asks "what's the current date?", respond with '{"tool":{"name":"timestamp_to_date", "arguments":[123]}}'.
+    Example 2: if user states "the output of the 'timestamp_to_date' tool is Tue Aug 19 1975 23:15:30 GMT+0200 (CEST)", and then asks "what's the current date?", respond with '{"text":"the current date is Tue Aug 19 1975 23:15:30 GMT+0200 (CEST)"}'.
+    `,
+  },
+  list_tools: {
+    call: () => Object.keys(tools).join(),
+    description: `
+    A tool for listing all available tools.
+    Arguments: none.
+    Returns: a string containining tool names separated by commas.
+    Use this tool by responding with "list_tools" in the "tool" field.
+    Example 1: if a user asks "what tools are available?", and the tools are foo, bar and baz, respond with "foo,bar,baz".
+    Example 2: if a user asks "list tools", and the tools are add and remove, respond with "add,remove".
     `,
   },
 };
