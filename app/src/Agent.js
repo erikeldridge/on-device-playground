@@ -7,24 +7,14 @@ export class Agent {
   }
   async onUserEvent(e) {
     let promptResult = await this._model.prompt(e.detail);
-    if (promptResult.tool) {
+    let detail = [e.detail];
+    while (promptResult.tool) {
       const args = promptResult.tool.arguments || [];
       const toolResult = this._tools[promptResult.tool.name].call(...args);
-      let detail;
-      if (typeof e.detail === "string") {
-        detail = [{ role: "user", content: e.detail }];
-      } else {
-        detail = e.detail;
-      }
-      detail.push({
-        role: "user",
-        content: `The output from the "${promptResult.tool.name}" tool is ${toolResult}`,
-      });
-      this._bus.dispatchEvent(
-        new CustomEvent("user", {
-          detail,
-        })
+      detail.push(
+        `The output from the "${promptResult.tool.name}" tool is ${toolResult}`
       );
+      promptResult = await this._model.prompt(detail);
     }
     if (promptResult.text) {
       this._bus.dispatchEvent(new CustomEvent("assistant"));
