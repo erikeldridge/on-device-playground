@@ -1,4 +1,4 @@
-export class ChromeModel {
+export class OnDeviceModel {
   constructor(provider, createOptions = {}) {
     this._provider = provider;
     this._createOptions = createOptions;

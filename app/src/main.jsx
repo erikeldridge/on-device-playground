@@ -1,6 +1,6 @@
 import { StrictMode } from "react";
 import { createRoot } from "react-dom/client";
-import { ChromeModel } from "./ChromeModel.js";
+import { OnDeviceModel } from "./OnDeviceModel.js";
 import { Agent } from "./Agent.js";
 import { App } from "./App.jsx";
 
@@ -29,7 +29,7 @@ const tools = {
   },
 };
 
-const model = new ChromeModel(window.LanguageModel, {
+const model = new OnDeviceModel(window.LanguageModel, {
   initialPrompts: [
     {
       role: "system",
