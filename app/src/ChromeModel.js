@@ -23,8 +23,6 @@ export class ChromeModel {
   async prompt(prompt) {
     console.log(`Raw prompt: ${prompt}`);
     const session = await this.session();
-    const normalized = ChromeModel.normalize(prompt);
-    console.log(`Normalized prompt:`, normalized);
     const schema = {
       type: "object",
       additionalProperties: false,
@@ -48,7 +46,7 @@ export class ChromeModel {
         },
       },
     };
-    const json = await session.prompt(normalized, {
+    const json = await session.prompt(prompt, {
       responseConstraint: schema,
     });
     console.log("Raw response", json);
