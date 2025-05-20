@@ -3,11 +3,36 @@ export class Agent {
     this._model = model;
     this._tools = tools;
   }
-  async isAvailable(){
-    return this._model.isAvailable()
+  async isAvailable() {
+    return this._model.isAvailable();
   }
   async prompt(prompt) {
-    let promptResult = await this._model.prompt(prompt);
+    const responseConstraint = {
+      type: "object",
+      additionalProperties: false,
+      properties: {
+        text: {
+          type: "string",
+        },
+        tool: {
+          type: "object",
+          properties: {
+            name: {
+              type: "string",
+            },
+            arguments: {
+              type: "array",
+              items: {
+                type: "number",
+              },
+            },
+          },
+        },
+      },
+    };
+    let promptResult = await this._model.prompt(prompt, {
+      responseConstraint,
+    });
     let detail = [prompt];
     while (promptResult.tool) {
       const args = promptResult.tool.arguments || [];
@@ -15,8 +40,10 @@ export class Agent {
       detail.push(
         `The output from the "${promptResult.tool.name}" tool is ${toolResult}`
       );
-      promptResult = await this._model.prompt(detail);
+      promptResult = await this._model.prompt(detail, {
+        responseConstraint,
+      });
     }
-    return promptResult.text
+    return promptResult.text;
   }
 }

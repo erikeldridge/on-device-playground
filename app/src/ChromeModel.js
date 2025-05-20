@@ -20,35 +20,10 @@ export class ChromeModel {
         return false;
     }
   }
-  async prompt(prompt) {
+  async prompt(prompt, options = {}) {
     console.log(`Raw prompt: ${prompt}`);
     const session = await this.session();
-    const schema = {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        text: {
-          type: "string",
-        },
-        tool: {
-          type: "object",
-          properties: {
-            name: {
-              type: "string",
-            },
-            arguments: {
-              type: "array",
-              items: {
-                type: "number",
-              },
-            },
-          },
-        },
-      },
-    };
-    const json = await session.prompt(prompt, {
-      responseConstraint: schema,
-    });
+    const json = await session.prompt(prompt, options);
     console.log("Raw response", json);
     const parsed = JSON.parse(json);
     console.log("Parsed response", parsed);
