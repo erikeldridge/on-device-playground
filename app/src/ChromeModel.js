@@ -1,8 +1,7 @@
 export class ChromeModel {
-  constructor(provider, tools = {}, history = []) {
+  constructor(provider, tools = {}) {
     this._provider = provider;
     this._tools = tools;
-    this.history = history;
   }
   async isAvailable() {
     if (!this._provider) {
@@ -26,7 +25,6 @@ export class ChromeModel {
     const session = await this.session();
     const normalized = ChromeModel.normalize(prompt);
     console.log(`Normalized prompt:`, normalized);
-    this.history.push(normalized);
     const schema = {
       type: "object",
       additionalProperties: false,
@@ -56,9 +54,6 @@ export class ChromeModel {
     console.log("Raw response", json);
     const parsed = JSON.parse(json);
     console.log("Parsed response", parsed);
-    if (parsed.text) {
-      this.history.push([{ role: "function", content: parsed.text }]);
-    }
     return parsed;
   }
 
