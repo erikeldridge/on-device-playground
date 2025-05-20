@@ -2,25 +2,33 @@ import "./App.css";
 import { useEffect, useState } from "react";
 import ReactMarkdown from "react-markdown";
 
-export function App({ busEl, model }) {
+export function App({ agent }) {
   const [prompt, setPrompt] = useState(
     "generate the current timestamp and then convert that timestamp to a date string"
   );
   const [output, setOutput] = useState([]);
   const [isAvailable, setIsAvailable] = useState(false);
   useEffect(() => {
-    model.isAvailable().then(setIsAvailable);
-    busEl.addEventListener("assistant", (e) => {
-      e.stopImmediatePropagation();
-      // Flattens nested content arrays for simpler view rendering.
-      const flatHistory = model.history.flatMap((item) => item);
-      setOutput(flatHistory);
-      setPrompt("");
-    });
-  }, [model, busEl]);
+    agent.isAvailable().then(setIsAvailable);
+  }, [agent]);
   async function onSubmit(e) {
     e.preventDefault();
-    busEl.dispatchEvent(new CustomEvent("user", { detail: prompt }));
+    setOutput([
+      ...output,
+      {
+        role: "user",
+        content: prompt,
+      },
+    ]);
+    setPrompt("");
+    const response = await agent.prompt(prompt);
+    setOutput((queuedOutput) => [
+      ...queuedOutput,
+      {
+        role: "assistant",
+        content: response,
+      },
+    ]);
   }
   function onChange(e) {
     setPrompt(e.target.value);

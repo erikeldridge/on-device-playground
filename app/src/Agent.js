@@ -1,13 +1,14 @@
 export class Agent {
-  constructor(busEl, model, tools) {
-    busEl.addEventListener("user", this.onUserEvent.bind(this));
-    this._bus = busEl;
+  constructor(model, tools) {
     this._model = model;
     this._tools = tools;
   }
-  async onUserEvent(e) {
-    let promptResult = await this._model.prompt(e.detail);
-    let detail = [e.detail];
+  async isAvailable(){
+    return this._model.isAvailable()
+  }
+  async prompt(prompt) {
+    let promptResult = await this._model.prompt(prompt);
+    let detail = [prompt];
     while (promptResult.tool) {
       const args = promptResult.tool.arguments || [];
       const toolResult = this._tools[promptResult.tool.name].call(...args);
@@ -16,8 +17,6 @@ export class Agent {
       );
       promptResult = await this._model.prompt(detail);
     }
-    if (promptResult.text) {
-      this._bus.dispatchEvent(new CustomEvent("assistant"));
-    }
+    return promptResult.text
   }
 }

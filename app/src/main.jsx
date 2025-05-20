@@ -1,32 +1,24 @@
-import { StrictMode } from 'react'
-import { createRoot } from 'react-dom/client'
-import { ChromeModel } from './ChromeModel.js'
-import { Agent } from './Agent.js'
-import {App} from './App.jsx'
-
-const rootEl = document.getElementById('root')
+import { StrictMode } from "react";
+import { createRoot } from "react-dom/client";
+import { ChromeModel } from "./ChromeModel.js";
+import { Agent } from "./Agent.js";
+import { App } from "./App.jsx";
 
 const tools = {
   timestamp: {
-    call: () => {
-      console.log('timestamp')
-      return Date.now()
-    },
+    call: () => Date.now(),
   },
   timestamp_to_date: {
-    call: (ts) => {
-      console.log('timestamp_to_date', ts)
-      return new Date(ts).toString()
-    }
-  }
+    call: (timestamp) => new Date(timestamp).toString(),
+  },
 };
 
 const model = new ChromeModel(window.LanguageModel, tools);
 
-new Agent(rootEl, model, tools)
+const agent = new Agent(model, tools);
 
-createRoot(rootEl).render(
+createRoot(document.getElementById("root")).render(
   <StrictMode>
-    <App busEl={rootEl} model={model} />
-  </StrictMode>,
-)
+    <App agent={agent} />
+  </StrictMode>
+);
