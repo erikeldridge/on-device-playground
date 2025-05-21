@@ -55,6 +55,23 @@ const tools = {
     Example 4: if a user asks "what's three plus three?", respond with '{"tool":{"name":"add_numbers", "arguments":[3,4]}}'.
     `,
   },
+  multiply_numbers: {
+    call: function () {
+      const numbers = Array.from(arguments);
+      console.log("multiply_numbers", numbers);
+      return numbers.reduce((prev, curr) => prev * curr, 1);
+    },
+    description: `
+    A tool for multiplying numbers.
+    Arguments: a javascript array of numbers to multiply.
+    Returns: the product, as a number.
+    Use this tool by responding with "multiply_numbers" in the "tool" field, and a javascript array of the numers to multiply in the "arguments" field, but only if there are two or more numbers given.
+    Example 1: if a user asks "what's 2 * 2?", respond with '{"tool":{"name":"multiply_numbers", "arguments":[2,2]}}'.
+    Example 2: if a user asks "what's 1 * 2 * 3?", respond with '{"tool":{"name":"multiply_numbers", "arguments":[1,2,3]}}'.
+    Example 3: if a user states "the output of the 'multiply_numbers' tool is 4", and asks "2 * 2", respond with '{"text":"2 * 2 = 4"}'.
+    Example 4: if a user asks "what's three times three?", respond with '{"tool":{"name":"multiply_numbers", "arguments":[3,4]}}'.
+    `,
+  },
 };
 
 const createOpts = {
