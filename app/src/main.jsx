@@ -95,7 +95,21 @@ const model = new OnDeviceModel(window.LanguageModel, createOpts);
 
 const qaModel = new OnDeviceModel(window.LanguageModel, createOpts);
 
-const agent = new Agent(model, qaModel, tools);
+const planner = new OnDeviceModel(window.LanguageModel, {
+  initialPrompts: [
+    {
+      role: "system",
+      content: `
+        You break problems down into pieces, and summarize these as a numbered
+        list of steps to take to solve the problem.
+        Do not provide code samples.
+        The following tools are available: ${Object.keys(tools)}
+        `,
+    },
+  ],
+});
+
+const agent = new Agent(model, qaModel, planner, tools);
 
 createRoot(document.getElementById("root")).render(
   <StrictMode>

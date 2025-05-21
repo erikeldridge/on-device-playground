@@ -21,15 +21,9 @@ export class OnDeviceModel {
     }
   }
   async prompt(prompt, options = {}) {
-    console.log(`Raw prompt: ${prompt}`);
     const session = await this.session();
-    const json = await session.prompt(prompt, options);
-    console.log("Raw response", json);
-    const parsed = JSON.parse(json);
-    console.log("Parsed response", parsed);
-    return parsed;
+    return session.prompt(prompt, options);
   }
-
   /**
    * Normalizes to the most complex type supported by
    * https://github.com/webmachinelearning/prompt-api#full-api-surface-in-web-idl
