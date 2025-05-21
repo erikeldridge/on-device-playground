@@ -1,0 +1,1 @@
+html,body,#root{height:100%}.container{display:flex;flex-flow:column;height:98%}#output{flex:auto;overflow:scroll}form{flex:initial;margin-top:8px}textarea{width:100%}button{display:block}
