@@ -9,6 +9,11 @@ export class Agent {
     return this._model.isAvailable();
   }
   async prompt(prompt) {
+    let plan = await this._planModel.prompt([
+      prompt,
+      `Break the problem down into pieces.`,
+    ]);
+    console.log(plan);
     const responseConstraint = {
       type: "object",
       additionalProperties: false,
@@ -32,15 +37,13 @@ export class Agent {
         },
       },
     };
-    let plan = await this._planModel.prompt([
-      `What are the steps required to solve each piece?`,
+    let detail = [
       prompt,
-    ]);
-    console.log(plan);
-    let promptResult = await this._metaPrompt(prompt, {
+      `Use the following plan to solve the problem: ${plan}`,
+    ];
+    let promptResult = await this._metaPrompt(detail, {
       responseConstraint,
     });
-    let detail = ['Use this plan to solve this prompt.', plan, prompt];
     while (promptResult.tool) {
       const args = promptResult.tool.arguments || [];
       const toolResult = this._tools[promptResult.tool.name].call(...args);
@@ -56,14 +59,12 @@ export class Agent {
   async _metaPrompt(prompt, options) {
     let response, qaResponse;
     for (let i = 0; i < 3; i++) {
-      [response, qaResponse] = (await Promise.all([
-        this._model.prompt(prompt, options),
-        this._qaModel.prompt(prompt, options),
-      ])).map(JSON.parse)
-    //   console.log(`Raw response: ${response}`);
-    //   console.log(`Raw response: ${qaResponse}`);
-    //   response = JSON.parse(response);
-    //   qaResponse = JSON.parse(qaResponse);
+      [response, qaResponse] = (
+        await Promise.all([
+          this._model.prompt(prompt, options),
+          this._qaModel.prompt(prompt, options),
+        ])
+      ).map(JSON.parse);
       console.log("Parsed response", response);
       console.log("Parsed response", qaResponse);
       if (

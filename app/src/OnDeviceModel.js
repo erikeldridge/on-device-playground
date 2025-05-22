@@ -21,6 +21,7 @@ export class OnDeviceModel {
     }
   }
   async prompt(prompt, options = {}) {
+    console.log(`Prompt`, prompt)
     const session = await this.session();
     return session.prompt(prompt, options);
   }
