@@ -24,17 +24,6 @@ export class OnDeviceModel {
     const session = await this.session();
     return session.prompt(prompt, options);
   }
-  /**
-   * Normalizes to the most complex type supported by
-   * https://github.com/webmachinelearning/prompt-api#full-api-surface-in-web-idl
-   * currently sequence<LanguageModelMessageShorthand>.
-   */
-  static normalize(prompt) {
-    if (typeof prompt === "string") {
-      return [{ role: "user", content: prompt }];
-    }
-    return prompt;
-  }
   async session() {
     if (!this._session) {
       console.log("Creating session");
