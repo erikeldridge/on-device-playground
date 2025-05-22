@@ -36,7 +36,7 @@ export function App({ agent }) {
   const outputItems = output.map((content, i) => {
     return (
       <li key={i} className={content.role}>
-        <ReactMarkdown children={content.content} />
+        {content.content}
       </li>
     );
   });

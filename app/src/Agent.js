@@ -10,73 +10,49 @@ export class Agent {
   }
   async prompt(prompt) {
     let plan = await this._planModel.prompt([
+      "Generate an algorithm to solve this problem",
       prompt,
-      `Break the problem down into pieces.`,
     ]);
-    console.log(plan);
-    const responseConstraint = {
-      type: "object",
-      additionalProperties: false,
-      properties: {
-        text: {
-          type: "string",
-        },
-        tool: {
-          type: "object",
-          properties: {
-            name: {
-              type: "string",
-            },
-            arguments: {
-              type: "array",
-              items: {
-                type: "number",
-              },
-            },
-          },
-        },
-      },
-    };
-    let detail = [
+    console.log("algo", plan);
+    let promptResult = await this._model.prompt([
+      "Implement the following algorithm using javascript",
+      plan,
+    ]);
+    console.log("impl", promptResult);
+    let qaResult = await this._qaModel.prompt([
+      promptResult,
+      "does this implement the prompt?",
       prompt,
-      `Use the following plan to solve the problem: ${plan}`,
-    ];
-    let promptResult = await this._metaPrompt(detail, {
-      responseConstraint,
-    });
-    while (promptResult.tool) {
-      const args = promptResult.tool.arguments || [];
-      const toolResult = this._tools[promptResult.tool.name].call(...args);
-      detail.push(
-        `The output from the "${promptResult.tool.name}" tool is ${toolResult}`
-      );
-      promptResult = await this._metaPrompt(detail, {
-        responseConstraint,
-      });
-    }
-    return promptResult.text;
+    ]);
+    console.log("qa", qaResult);
+    const matches = promptResult.match(/```javascript\n([\s\S]*?)\n```/);
+    console.log("match", matches[1]);
+    return this._eval(matches[1]);
   }
-  async _metaPrompt(prompt, options) {
-    let response, qaResponse;
-    for (let i = 0; i < 3; i++) {
-      [response, qaResponse] = (
-        await Promise.all([
-          this._model.prompt(prompt, options),
-          this._qaModel.prompt(prompt, options),
-        ])
-      ).map(JSON.parse);
-      console.log("Parsed response", response);
-      console.log("Parsed response", qaResponse);
-      if (
-        (response.tool &&
-          qaResponse.tool &&
-          response.tool.name === qaResponse.tool.name) ||
-        (response.text && qaResponse.text)
-      ) {
-        console.log("consistent");
-        break;
-      }
-    }
-    return response;
+  async _eval(code) {
+    const iframe = document.getElementById("sandbox");
+    return new Promise((resolve) => {
+      window.addEventListener(
+        "message",
+        (event) => {
+          console.log("event", event);
+          if (event.origin === 'null' && event.data && event.data.type === "result") {
+            console.log("result", event.data.result);
+            resolve(event.data.result);
+            URL.revokeObjectURL(iframe.src);
+            iframe.src = "about:blank";
+          }
+        },
+        { once: true }
+      );
+      const html = `
+        <!DOCTYPE html><html><body><script>
+        ${code}
+        window.parent.postMessage({ type: 'result', result: main() }, '*');
+        </script></body></html>
+        `;
+      const blob = new Blob([html], { type: "text/html" });
+      iframe.src = URL.createObjectURL(blob);
+    });
   }
 }
