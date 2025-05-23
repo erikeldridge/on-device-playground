@@ -4,13 +4,15 @@ A web app for playing with on-device AI features.
 
 ## Set Up
 
-1. `cd app`
-2. `npm install`
+1. `npm install`
 
-## Run
+## Develop
 
-1. `cd app`
-2. `npm start`
+1. `npm start`
+
+## Preview
+
+1. `npm preview`
 
 ## Edit Favicon
 
