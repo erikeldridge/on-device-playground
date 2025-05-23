@@ -12,7 +12,16 @@ A web app for playing with on-device AI features.
 
 ## Preview
 
+View the built site prior to deploying:
+
 1. `npm preview`
+
+## Deploy
+
+Update https://erikeldridge.com/on-device-playground:
+
+1. Push changes to remote repo
+2. GH Action defined by .github/workflows/deploy.yml runs on change 
 
 ## Edit Favicon
 
