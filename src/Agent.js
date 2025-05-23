@@ -1,4 +1,7 @@
 export class Agent {
+  features = {
+    plan: true
+  };
   constructor(model) {
     this._model = model;
   }
@@ -6,7 +9,9 @@ export class Agent {
     return this._model.isAvailable();
   }
   async prompt(prompt) {
-    let plan = await this._model.prompt(`
+    let plan;
+    if (this.features.plan) {
+      plan = await this._model.prompt(`
         Generate an algorithm to solve this problem: ${prompt}
         Respond with a numbered list of steps.
         Each step should be a single sentence of prose describing an action to take.
@@ -15,9 +20,19 @@ export class Agent {
         2) identify the operand\n
         3) perform the operation on the inputs
         `);
-    console.log("algo", plan);
-    let promptResult = await this._model.prompt(`
-        Implement this algorithm using javascript: ${plan}
+      console.log("plan", plan);
+    }
+    const implementationPrompt = [];
+    if (plan) {
+      implementationPrompt.push(
+        `Implement this algorithm using javascript: ${plan}`
+      );
+    } else {
+      implementationPrompt.push(
+        `Solve this problem using javascript: ${prompt}`
+      );
+    }
+    implementationPrompt.push(`
         For example, if the problem is "square root of 4",
         respond with "function main(){return Math.sqrt(4);}".
         Always wrap the solution in a function called "main".
@@ -25,6 +40,7 @@ export class Agent {
         Never log to the console.
         The javascript must be able to run in a browser.
         `);
+    let promptResult = await this._model.prompt(implementationPrompt);
     console.log("impl", promptResult);
     const matches = promptResult.match(/```javascript\n([\s\S]*?)\n```/);
     console.log("match", matches[1]);

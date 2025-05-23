@@ -8,6 +8,7 @@ export function App({ agent }) {
   );
   const [output, setOutput] = useState([]);
   const [isAvailable, setIsAvailable] = useState(true);
+  const [features, setFeatures] = useState(agent.features);
   useEffect(() => {
     agent.isAvailable().then(setIsAvailable);
   }, [agent]);
@@ -33,6 +34,14 @@ export function App({ agent }) {
   function onChange(e) {
     setPrompt(e.target.value);
   }
+  function onFeatureChange(e) {
+    const { name, checked } = e.target;
+    setFeatures({
+      ...features,
+      [name]: checked,
+    });
+    agent.features[name] = checked;
+  }
   const outputItems = output.map((content, i) => {
     return (
       <li key={i} className={content.role}>
@@ -51,6 +60,15 @@ export function App({ agent }) {
           Chrome version 138+.
         </a>
       </div>
+      <form id="nav">
+        <label htmlFor="plan">Plan</label>
+        <input
+          type="checkbox"
+          name="plan"
+          onChange={onFeatureChange}
+          checked={features.plan}
+        />
+      </form>
       <ol id="output">{outputItems}</ol>
       <form onSubmit={onSubmit}>
         <textarea value={prompt} onChange={onChange}></textarea>
