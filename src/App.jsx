@@ -7,7 +7,7 @@ export function App({ agent }) {
     "generate the current timestamp and then convert that timestamp to a date string"
   );
   const [output, setOutput] = useState([]);
-  const [isAvailable, setIsAvailable] = useState(false);
+  const [isAvailable, setIsAvailable] = useState(true);
   useEffect(() => {
     agent.isAvailable().then(setIsAvailable);
   }, [agent]);
@@ -40,8 +40,17 @@ export function App({ agent }) {
       </li>
     );
   });
+  const bannerStyle = {
+    display: isAvailable ? "none" : "block",
+  };
   return (
     <div className="container">
+      <div id="banner" style={bannerStyle}>
+        Unsupported Browser. Try&nbsp;
+        <a href="https://developer.chrome.com/docs/ai/built-in-apis">
+          Chrome version 138+.
+        </a>
+      </div>
       <ol id="output">{outputItems}</ol>
       <form onSubmit={onSubmit}>
         <textarea value={prompt} onChange={onChange}></textarea>
