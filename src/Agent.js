@@ -21,9 +21,9 @@ export class Agent {
         3) perform the operation on the inputs
         `);
       yield {
-        role: 'assistant',
-        type: "thought",
-        content: `Plan: ${plan}`,
+        role: "assistant",
+        type: "plan",
+        content: plan,
       };
     }
     const implementationPrompt = [];
@@ -47,24 +47,24 @@ export class Agent {
     let promptResult = await this._model.prompt(implementationPrompt);
     const matches = promptResult.match(/```javascript\n([\s\S]*?)\n```/);
     yield {
-      role: 'assistant',
-      type: "thought",
-      content: `JavaScript: ${matches[1]}`,
+      role: "assistant",
+      type: "JavaScript",
+      content: promptResult,
     };
     let qaResult = await this._model.prompt(`
         Verify the javascript implements the algorithm.
         Respond "yes" if the implementation is correct, or "no" if it isn't.
     `);
     yield {
-      role: 'assistant',
-      type: "thought",
+      role: "assistant",
+      type: "verification",
       content: `Does the JavaScript match the plan? ${qaResult}`,
     };
     const result = await this._eval(matches[1]);
     yield {
-      role: 'assistant',
-      type: "final",
-      content: result,
+      role: "assistant",
+      type: "result",
+      content: result
     };
   }
   async _eval(code) {

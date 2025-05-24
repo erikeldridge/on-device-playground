@@ -18,15 +18,13 @@ export function App({ agent }) {
       ...output,
       {
         role: "user",
+        type: "prompt",
         content: prompt,
       },
     ]);
     setPrompt("");
     for await (const response of agent.prompt(prompt)) {
-      setOutput((queuedOutput) => [
-        ...queuedOutput,
-        response,
-      ]);
+      setOutput((queuedOutput) => [...queuedOutput, response]);
     }
   }
   function onChange(e) {
@@ -41,10 +39,10 @@ export function App({ agent }) {
     agent.features[name] = checked;
   }
   const outputItems = output.map((content, i) => {
-    const className = `${content.role} ${content.type}`
     return (
-      <li key={i} className={className}>
-        {content.content}
+      <li key={i} className={content.role}>
+        <h2>{content.type}</h2>
+        <ReactMarkdown>{content.content}</ReactMarkdown>
       </li>
     );
   });
@@ -59,7 +57,7 @@ export function App({ agent }) {
           Chrome version 138+.
         </a>
       </div>
-      <form id="nav">
+      <form id="features">
         <label htmlFor="plan">Plan</label>
         <input
           type="checkbox"
