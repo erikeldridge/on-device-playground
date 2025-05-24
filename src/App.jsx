@@ -42,7 +42,9 @@ export function App({ agent }) {
     return (
       <li key={i} className={content.role}>
         <h2>{content.type}</h2>
-        <ReactMarkdown>{content.content}</ReactMarkdown>
+        {/* Casts all content to string since markdown must be
+        a string and results may be numeric. */}
+        <ReactMarkdown>{String(content.content)}</ReactMarkdown>
       </li>
     );
   });
