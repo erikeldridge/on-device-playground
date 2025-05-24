@@ -1,6 +1,6 @@
 export class Agent {
   features = {
-    plan: true
+    plan: true,
   };
   constructor(model) {
     this._model = model;
@@ -8,7 +8,7 @@ export class Agent {
   async isAvailable() {
     return this._model.isAvailable();
   }
-  async prompt(prompt) {
+  async *prompt(prompt) {
     let plan;
     if (this.features.plan) {
       plan = await this._model.prompt(`
@@ -20,7 +20,11 @@ export class Agent {
         2) identify the operand\n
         3) perform the operation on the inputs
         `);
-      console.log("plan", plan);
+      yield {
+        role: 'assistant',
+        type: "thought",
+        content: `Plan: ${plan}`,
+      };
     }
     const implementationPrompt = [];
     if (plan) {
@@ -41,16 +45,27 @@ export class Agent {
         The javascript must be able to run in a browser.
         `);
     let promptResult = await this._model.prompt(implementationPrompt);
-    console.log("impl", promptResult);
     const matches = promptResult.match(/```javascript\n([\s\S]*?)\n```/);
-    console.log("match", matches[1]);
+    yield {
+      role: 'assistant',
+      type: "thought",
+      content: `JavaScript: ${matches[1]}`,
+    };
     let qaResult = await this._model.prompt(`
         Verify the javascript implements the algorithm.
         Respond "yes" if the implementation is correct, or "no" if it isn't.
     `);
-    console.log("qa", qaResult);
-
-    return this._eval(matches[1]);
+    yield {
+      role: 'assistant',
+      type: "thought",
+      content: `Does the JavaScript match the plan? ${qaResult}`,
+    };
+    const result = await this._eval(matches[1]);
+    yield {
+      role: 'assistant',
+      type: "final",
+      content: result,
+    };
   }
   async _eval(code) {
     const iframe = document.getElementById("sandbox");

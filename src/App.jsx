@@ -22,14 +22,12 @@ export function App({ agent }) {
       },
     ]);
     setPrompt("");
-    const response = await agent.prompt(prompt);
-    setOutput((queuedOutput) => [
-      ...queuedOutput,
-      {
-        role: "assistant",
-        content: response,
-      },
-    ]);
+    for await (const response of agent.prompt(prompt)) {
+      setOutput((queuedOutput) => [
+        ...queuedOutput,
+        response,
+      ]);
+    }
   }
   function onChange(e) {
     setPrompt(e.target.value);
@@ -43,8 +41,9 @@ export function App({ agent }) {
     agent.features[name] = checked;
   }
   const outputItems = output.map((content, i) => {
+    const className = `${content.role} ${content.type}`
     return (
-      <li key={i} className={content.role}>
+      <li key={i} className={className}>
         {content.content}
       </li>
     );
