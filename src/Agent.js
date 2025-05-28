@@ -1,6 +1,7 @@
 export class Agent {
   features = {
     plan: true,
+    code: true,
   };
   constructor(model) {
     this._model = model;
@@ -26,17 +27,37 @@ export class Agent {
         content: plan,
       };
     }
-    const implementationPrompt = [];
-    if (plan) {
-      implementationPrompt.push(
-        `Implement this algorithm using javascript: ${plan}`
-      );
+    if (this.features.code) {
+      for await (const result of this._generateResultUsingCode(prompt, plan)) {
+        yield result;
+      }
     } else {
-      implementationPrompt.push(
-        `Solve this problem using javascript: ${prompt}`
-      );
+      yield this._generateResult(prompt, plan);
     }
-    implementationPrompt.push(`
+  }
+  async _generateResult(prompt, plan) {
+    const prompts = [];
+    if (plan) {
+      prompts.push(`Solve this problem  accoring to this plan: ${plan}`);
+    } else {
+      prompts.push(`Solve this problem: ${prompt}`);
+    }
+    prompts.push(`For example, if the problem is "square root of 4", respond "2".`);
+    const result = await this._model.prompt(prompts);
+    return {
+      role: "assistant",
+      type: "result",
+      content: result,
+    };
+  }
+  async *_generateResultUsingCode(prompt, plan) {
+    const prompts = [];
+    if (plan) {
+      prompts.push(`Implement this algorithm using javascript: ${plan}`);
+    } else {
+      prompts.push(`Solve this problem using javascript: ${prompt}`);
+    }
+    prompts.push(`
         For example, if the problem is "square root of 4",
         respond with "function main(){return Math.sqrt(4);}".
         Always wrap the solution in a function called "main".
@@ -44,11 +65,11 @@ export class Agent {
         Never log to the console.
         The javascript must be able to run in a browser.
         `);
-    let promptResult = await this._model.prompt(implementationPrompt);
+    let promptResult = await this._model.prompt(prompts);
     const matches = promptResult.match(/```javascript\n([\s\S]*?)\n```/);
     yield {
       role: "assistant",
-      type: "JavaScript",
+      type: "javascript",
       content: promptResult,
     };
     let qaResult = await this._model.prompt(`
@@ -64,7 +85,7 @@ export class Agent {
     yield {
       role: "assistant",
       type: "result",
-      content: result
+      content: result,
     };
   }
   async _eval(code) {

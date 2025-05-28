@@ -27,23 +27,23 @@ export function App({ agent }) {
       setOutput((queuedOutput) => [...queuedOutput, response]);
     }
   }
-  function onChange(e) {
+  function onPromptChange(e) {
     setPrompt(e.target.value);
   }
   function onFeatureChange(e) {
-    const { name, checked } = e.target;
+    const { id, checked } = e.target;
     setFeatures({
       ...features,
-      [name]: checked,
+      [id]: checked,
     });
-    agent.features[name] = checked;
+    agent.features[id] = checked;
   }
   const outputItems = output.map((content, i) => {
     return (
       <li key={i} className={content.role}>
         <h2>{content.type}</h2>
         {/* Casts all content to string since markdown must be
-        a string and results may be numeric. */}
+        a string, but content may be numeric. */}
         <ReactMarkdown>{String(content.content)}</ReactMarkdown>
       </li>
     );
@@ -60,17 +60,32 @@ export function App({ agent }) {
         </a>
       </div>
       <form id="features">
-        <label htmlFor="plan">Plan</label>
-        <input
-          type="checkbox"
-          name="plan"
-          onChange={onFeatureChange}
-          checked={features.plan}
-        />
+        <div className="feature">
+          <input
+            type="checkbox"
+            id="plan"
+            onChange={onFeatureChange}
+            checked={features.plan}
+          />
+          <label htmlFor="plan">
+            Plan: Generate a step-by-step plan prior to generating a response.
+          </label>
+        </div>
+        <div className="feature">
+          <input
+            type="checkbox"
+            id="code"
+            onChange={onFeatureChange}
+            checked={features.code}
+          />
+          <label htmlFor="code">
+            Code: Generate code to produce a response.
+          </label>
+        </div>
       </form>
       <ol id="output">{outputItems}</ol>
       <form onSubmit={onSubmit}>
-        <textarea value={prompt} onChange={onChange}></textarea>
+        <textarea value={prompt} onChange={onPromptChange}></textarea>
         <button type="submit" disabled={!isAvailable}>
           Send
         </button>
